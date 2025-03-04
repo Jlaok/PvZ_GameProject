@@ -2,16 +2,18 @@
 #include "display.h"
 #include "sound.h"
 #include "musical_notes.h"
+#include "font5x7.h"
 #include "stm32f0xx.h"  // Ensure you include the STM32 header
 void initClock(void);
 void initSysTick(void);
 void SysTick_Handler(void);
 void delay(volatile uint32_t dly);
 void setupIO();
-int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint16_t py);
+int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint16_t py, uint16_t padding);
 void enablePullUp(GPIO_TypeDef *Port, uint32_t BitNumber);
 void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode);
-
+void playWinTheme();
+void playPVZTheme();
 volatile uint32_t milliseconds;
 
 const uint16_t black[]= //black 16x16
@@ -44,20 +46,17 @@ int main()
 	int toggle = 0;
 	int vmoved = 0;
 	int tempx = 0;
+
 	uint16_t x = 20;
 	uint16_t y = 80;
 	uint16_t oldx = x;
 	uint16_t oldy = y;
+    uint16_t padding = 5; // padding around hitbox 
+
 	initClock();
 	initSysTick();
 	setupIO();
 	putImage(20,80,16,16,shooter,0,0); //displays player starting position
-	/*
-	putImage(100,140,16,16,zombie,0,0); // ZOMB 4
-	putImage(100,100,16,16,zombie,0,0); // ZOMB 3
-	putImage(100,60,16,16,zombie,0,0); // ZOMB 2
-	putImage(100,20,16,16,zombie,0,0); // ZOMB 1
-	*/
 
 	float zombie1X = 100; // starting x position of zombie1
 	float zombie1Y = 20; // starting y position of zombie1
@@ -71,12 +70,6 @@ int main()
 	float zombie4X = 100; // starting x position of zombie2
 	float zombie4Y = 140; // starting y position of zombie2
 
-	// theme song works, however, during and after it plays the game is frozen.
-	/*
-	initSound();  // Initialize sound
-    playPvZTheme(); // Play the PvZ theme!
-	*/
-
 	while(1)
 	{
 		zombie1X = zombie1X - 0.3; // Move zombie1 to the left by 0.3 pixel per frame
@@ -89,24 +82,45 @@ int main()
 		putImage(zombie3X, zombie3Y, 16, 16, zombie, 0, 0);
     	putImage(zombie4X, zombie4Y, 16, 16, zombie, 0, 0);
 
+        int zombieDead = 0;
 
-		if (zombie1X < 0) {
+		if (zombie1X < 0) 
+        {
 			putImage(zombie1X,zombie1Y,16,16,black,0,0);
-			zombie1X = 100; // Reset zombie to start position if it moves off the screen
+            zombieDead = zombieDead + 1;
+			//zombie1X = 100; // Reset zombie to start position if it moves off the screen
 		}
 		if (zombie2X < 0) {
 			putImage(zombie2X,zombie2Y,16,16,black,0,0);
-			zombie2X = 100; // Reset zombie to start position if it moves off the screen
+            zombieDead = zombieDead + 1;
+			//zombie2X = 100; // Reset zombie to start position if it moves off the screen
 		}
 		if (zombie3X < 0) {
 			putImage(zombie3X,zombie3Y,16,16,black,0,0);
-			zombie3X = 100; // Reset zombie to start position if it moves off the screen
+            zombieDead = zombieDead + 1;
+			//zombie3X = 100; // Reset zombie to start position if it moves off the screen
 		}
 		if (zombie4X < 0) {
 			putImage(zombie4X,zombie4Y,16,16,black,0,0);
-			zombie4X = 100; // Reset zombie to start position if it moves off the screen
+            zombieDead = zombieDead + 1;
+			//zombie4X = 100; // Reset zombie to start position if it moves off the screen
 		}
 
+        if (zombieDead == 4)
+        {
+            initSound();
+			//playWinTheme();  || zombie2X || zombie3X || zombie4X 
+			printTextX2("YOU WIN!", 10, 20, RGBToWord(0xff,0xff,0), 0);
+            
+        }
+		
+		if (zombie1X < 20)
+		{
+			initSound();
+			//playLoseTheme();
+			printTextX2("GAMEOVER!", 10, 20, RGBToWord(0xff,0xff,0), 0);
+		}
+		
 		vmoved = 0; //resets if player moved so it doesnt stay in loop
 		// --------------------------------------------------------------------------------- IF RIGHT PRESSED
 		if ((GPIOB->IDR & (1 << 4))==0) // right pressed
@@ -121,28 +135,34 @@ int main()
 			{
 				x = x + 1;
 				delay(20);
-				putImage(x,y,16,16,pellet,0,0);
+				putImage(x, y, 16, 16, pellet, 0, 0); // move pellet forward
 
-				if (isInside(100,140,16,16,x,y)) //if in zombie lane1
+				if (isInside(zombie1X, zombie1Y, 16, 16, x, y, 5)) //if in zombie lane1
 				{
-					putImage(100,140,16,16,black,0,0); //places black over zombie start -> make into zombies current location
+					putImage(zombie1X, zombie1Y, 16, 16, black, 0, 0); //places black over zombie start -> make into zombies current location
+                    zombie1X = -100;
+                    break; // stops pellet moving after it hits zombie
 				}
-				else if (isInside(100,100,16,16,x,y)) //if in zombie lane2
+				if (isInside(zombie2X, zombie2Y, 16, 16, x, y, 5)) //if in zombie lane2
 				{
-					putImage(100,100,16,16,black,0,0);
+					putImage(zombie2X, zombie2Y, 16, 16, black, 0, 0);
+                    zombie2X = -100;
+                    break;
 				}
-				else if (isInside(100,60,16,16,x,y)) //if in zombie lane3
+                if (isInside(zombie3X, zombie3Y, 16, 16, x, y, 5)) //if in zombie lane2
 				{
-					putImage(100,60,16,16,black,0,0);
+					putImage(zombie3X, zombie3Y, 16, 16, black, 0, 0);
+                    zombie3X = -100;
+                    break;
 				}
-				else if (isInside(100,20,16,16,x,y)) //if in zombie lane4
+                if (isInside(zombie4X, zombie4Y, 16, 16, x, y, 5)) //if in zombie lane2
 				{
-					putImage(100,20,16,16,black,0,0);
+					putImage(zombie4X, zombie4Y, 16, 16, black, 0, 0);
+                    zombie4X = -100;
+                    break;
 				}
-				else
-				{
-					//nothing
-				}
+				
+				
 
 			}// end while(x<100)
 
@@ -295,6 +315,21 @@ void delay_ms(uint32_t ms) {
     SysTick->CTRL = 0;  // Disable SysTick
 }// end delay_ms
 	
+void playWinTheme(void)
+{
+    playNoteWithDuration(G3, 300);
+    playNoteWithDuration(A3, 300);
+    playNoteWithDuration(B3, 300);
+    playNoteWithDuration(C4, 300);
+    playNoteWithDuration(B3, 300);
+    playNoteWithDuration(C4, 300);
+}
+void playLoseTheme(void)
+{
+    playNoteWithDuration(A3, 300);
+    playNoteWithDuration(F3, 300);
+    playNoteWithDuration(CS3_Db3, 300);
+}
 void playPvZTheme(void) 
 {
 	// -------------------------------------------------------- A 
@@ -360,12 +395,13 @@ void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode)
 	mode_value = mode_value | Mode;
 	Port->MODER = mode_value;
 }
-int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint16_t py)
+int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint16_t py, uint16_t padding)
 {
 	// checks to see if point px,py is within the rectange defined by x,y,w,h
-	uint16_t x2,y2;
-	x2 = x1+w;
-	y2 = y1+h;
+    /*
+	uint16_t x2, y2;
+	x2 = x1 + w;
+	y2 = y1 + h;
 	int rvalue = 0;
 	if ( (px >= x1) && (px <= x2))
 	{
@@ -374,6 +410,18 @@ int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint
 			rvalue = 1;
 	}
 	return rvalue;
+    */
+    // Expand the hitbox in all directions
+    x1 -= padding;  // Expand left
+    y1 -= padding;  // Expand up
+    w += padding * 2; // Expand width both ways
+    h += padding * 2; // Expand height both ways
+
+
+    uint16_t x2 = x1 + w - 1;  // Adjusted to match actual bounding box
+    uint16_t y2 = y1 + h - 1;
+    
+    return (px >= x1 && px <= x2) && (py >= y1 && py <= y2);
 }
 
 void setupIO()
