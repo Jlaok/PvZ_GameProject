@@ -1,20 +1,40 @@
 #include <stm32f031x6.h>
+#include <stdlib.h>
 #include "display.h"
 #include "sound.h"
 #include "musical_notes.h"
 #include "font5x7.h"
 #include "stm32f0xx.h"  // Ensure you include the STM32 header
+#include <stdint.h>
+uint32_t shift_register = 0;
+
+struct zombies
+{
+	float zombx;
+	float zomby;
+	int zombnum;
+};
+
 void initClock(void);
 void initSysTick(void);
 void SysTick_Handler(void);
 void delay(volatile uint32_t dly);
+uint32_t prbs();
 void setupIO();
 int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint16_t py, uint16_t padding);
 void enablePullUp(GPIO_TypeDef *Port, uint32_t BitNumber);
 void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode);
 void playWinTheme();
 void playPVZTheme();
+void delay_ms(uint32_t ms);
+void playNoteWithDuration(uint32_t freq, int duration);
+void greenOn(void);
+void greenOff(void);
+void redOn(void);
+void redOff(void);
+uint32_t randomise(uint32_t,uint32_t);
 volatile uint32_t milliseconds;
+
 
 const uint16_t black[]= //black 16x16
 {
@@ -42,10 +62,16 @@ const uint16_t deco2[]= //flowervar2
 
 int main()
 {
-	int vinverted = 0;
 	int toggle = 0;
 	int vmoved = 0;
 	int tempx = 0;
+	int random = -1;
+	int zombieDead = 0;
+	int count = 0;
+	int z1 = 0;
+	int z2 = 0;
+	int z3 = 0;
+	int z4 = 0;
 
 	uint16_t x = 20;
 	uint16_t y = 80;
@@ -57,68 +83,137 @@ int main()
 	initSysTick();
 	setupIO();
 	putImage(20,80,16,16,shooter,0,0); //displays player starting position
+	greenOn();
+	redOn();
 
-	float zombie1X = 100; // starting x position of zombie1
-	float zombie1Y = 20; // starting y position of zombie1
+	struct zombies zombie1;
+	struct zombies zombie2;
+	struct zombies zombie3;
+	struct zombies zombie4;
 
-	float zombie2X = 100; // starting x position of zombie1
-	float zombie2Y = 60; // starting y position of zombie1
+	zombie1.zombx = 100; // starting x position of zombie1
+	zombie1.zomby = 20; // starting y position of zombie1 
+	zombie1.zombnum = 1; // initialising the row/zombie number
 
-	float zombie3X = 100; // starting x position of zombie1
-	float zombie3Y = 100; // starting y position of zombie1
+	zombie2.zombx = 100; // starting x position of zombie2
+	zombie2.zomby = 60; // starting y position of zombie2
+	zombie2.zombnum = 2; // initialising the row/zombie number
 
-	float zombie4X = 100; // starting x position of zombie2
-	float zombie4Y = 140; // starting y position of zombie2
+	zombie3.zombx = 100; // starting x position of zombie3
+	zombie3.zomby = 100; // starting y position of zombie3
+	zombie3.zombnum = 3; // initialising the row/zombie number
+
+	zombie4.zombx = 100; // starting x position of zombie4
+	zombie4.zomby = 140; // starting y position of zombie4
+	zombie4.zombnum = 4; // initialising the row/zombie number
+	z1 = zombie1.zombx;
+	z2 = zombie1.zombx;
+	z3 = zombie1.zombx;
+	z4 = zombie1.zombx;
 
 	while(1)
 	{
-		zombie1X = zombie1X - 0.3; // Move zombie1 to the left by 0.3 pixel per frame
-		zombie2X = zombie2X - 0.3; // Move zombie1 to the left by 0.3 pixel per frame
-		zombie3X = zombie3X - 0.3; // Move zombie1 to the left by 0.3 pixel per frame
-    	zombie4X = zombie4X - 0.3; // Move zombie2 to the left by 0.3 pixel per frame
+		if (zombieDead == count)
+		{
+		random = randomise(1,6); // chooses a random zombie to send
+		count++;
+		}
 
-		putImage(zombie1X, zombie1Y, 16, 16, zombie, 0, 0);
-		putImage(zombie2X, zombie2Y, 16, 16, zombie, 0, 0);
-		putImage(zombie3X, zombie3Y, 16, 16, zombie, 0, 0);
-    	putImage(zombie4X, zombie4Y, 16, 16, zombie, 0, 0);
+		if (zombie1.zombnum == random)
+		{
+			z1 = z1 - 0.1; // Move zombie1 to the left by 0.3 pixel per frame
+			putImage(z1, zombie1.zomby, 16, 16, zombie, 0, 0);
 
-        int zombieDead = 0;
+			if (z1 < 0) 
+			{
+				putImage(z2,zombie1.zomby,16,16,black,0,0);
+				zombieDead++;
+				z1 = zombie1.zombx;
+				//zombie1X = 100; // Reset zombie to start position if it moves off the screen
+			}
+		}
 
-		if (zombie1X < 0) 
+		else if (zombie2.zombnum == random)
+		{
+			z2 = z2 - 0.1; // Move zombie1 to the left by 0.3 pixel per frame
+			putImage(z2, zombie2.zomby, 16, 16, zombie, 0, 0);
+
+			if (z2 < 0) 
+			{
+				putImage(z2,zombie2.zomby,16,16,black,0,0);
+				zombieDead++;
+				z2 = zombie2.zombx;
+				//zombie1X = 100; // Reset zombie to start position if it moves off the screen
+			}
+		}
+
+		else if (zombie3.zombnum == random)
+		{
+			z3 = z3 - 0.1; // Move zombie1 to the left by 0.3 pixel per frame
+			putImage(z3, zombie3.zomby, 16, 16, zombie, 0, 0);
+
+			if (z3 < 0) 
+			{
+				putImage(z3,zombie3.zomby,16,16,black,0,0);
+				zombieDead++;
+				z3 = zombie3.zombx;
+				//zombie1X = 100; // Reset zombie to start position if it moves off the screen
+			}
+		}
+
+		else if (zombie4.zombnum == random)
+		{
+			z4 = z4 - 0.1; // Move zombie1 to the left by 0.3 pixel per frame
+			putImage(z4, zombie4.zomby, 16, 16, zombie, 0, 0);
+
+			if (z4 < 0) 
+			{
+				putImage(z4,zombie4.zomby,16,16,black,0,0);
+				zombieDead++;
+				z4 = zombie4.zombx;
+				//zombie1X = 100; // Reset zombie to start position if it moves off the screen
+			}
+		}
+
+        if (zombieDead == 10)
         {
-			putImage(zombie1X,zombie1Y,16,16,black,0,0);
-            zombieDead = zombieDead + 1;
-			//zombie1X = 100; // Reset zombie to start position if it moves off the screen
-		}
-		if (zombie2X < 0) {
-			putImage(zombie2X,zombie2Y,16,16,black,0,0);
-            zombieDead = zombieDead + 1;
-			//zombie2X = 100; // Reset zombie to start position if it moves off the screen
-		}
-		if (zombie3X < 0) {
-			putImage(zombie3X,zombie3Y,16,16,black,0,0);
-            zombieDead = zombieDead + 1;
-			//zombie3X = 100; // Reset zombie to start position if it moves off the screen
-		}
-		if (zombie4X < 0) {
-			putImage(zombie4X,zombie4Y,16,16,black,0,0);
-            zombieDead = zombieDead + 1;
-			//zombie4X = 100; // Reset zombie to start position if it moves off the screen
-		}
-
-        if (zombieDead == 4)
-        {
-            initSound();
-			//playWinTheme();  || zombie2X || zombie3X || zombie4X 
+            initSound(); 
 			printTextX2("YOU WIN!", 10, 20, RGBToWord(0xff,0xff,0), 0);
-            
+            random = 100;
+			putImage(zombie1.zombx, zombie1.zomby, 16, 16, black, 0, 0);
+			putImage(zombie2.zombx, zombie2.zomby, 16, 16, black, 0, 0);
+			putImage(zombie3.zombx, zombie3.zomby, 16, 16, black, 0, 0);
+			putImage(zombie4.zombx, zombie4.zomby, 16, 16, black, 0, 0);
+			playWinTheme();
         }
+		else
+		{
+			// NADA
+		}
 		
-		if (zombie1X < 20)
+		if (z1 == 20)
 		{
 			initSound();
-			//playLoseTheme();
 			printTextX2("GAMEOVER!", 10, 20, RGBToWord(0xff,0xff,0), 0);
+			playLoseTheme();
+		}
+		else if (z2 == 20)
+		{
+			initSound();
+			printTextX2("GAMEOVER!", 10, 20, RGBToWord(0xff,0xff,0), 0);
+			playLoseTheme();
+		}
+		else if (z3 == 20)
+		{
+			initSound();
+			printTextX2("GAMEOVER!", 10, 20, RGBToWord(0xff,0xff,0), 0);
+			playLoseTheme();
+		}
+		else if (z4 == 20)
+		{
+			initSound();
+			printTextX2("GAMEOVER!", 10, 20, RGBToWord(0xff,0xff,0), 0);
+			playLoseTheme();
 		}
 		
 		vmoved = 0; //resets if player moved so it doesnt stay in loop
@@ -137,28 +232,28 @@ int main()
 				delay(20);
 				putImage(x, y, 16, 16, pellet, 0, 0); // move pellet forward
 
-				if (isInside(zombie1X, zombie1Y, 16, 16, x, y, 5)) //if in zombie lane1
+				if (isInside(z1, zombie1.zomby, 16, 16, x, y, 5)) //if in zombie lane1
 				{
-					putImage(zombie1X, zombie1Y, 16, 16, black, 0, 0); //places black over zombie start -> make into zombies current location
-                    zombie1X = -100;
+					putImage(z1, zombie1.zomby, 16, 16, black, 0, 0); //places black over zombie start -> make into zombies current location
+                    z1 = -100;
                     break; // stops pellet moving after it hits zombie
 				}
-				if (isInside(zombie2X, zombie2Y, 16, 16, x, y, 5)) //if in zombie lane2
+				if (isInside(z2, zombie2.zomby, 16, 16, x, y, 5)) //if in zombie lane2
 				{
-					putImage(zombie2X, zombie2Y, 16, 16, black, 0, 0);
-                    zombie2X = -100;
+					putImage(z2, zombie2.zomby, 16, 16, black, 0, 0);
+                    z2 = -100;
                     break;
 				}
-                if (isInside(zombie3X, zombie3Y, 16, 16, x, y, 5)) //if in zombie lane2
+                if (isInside(z3, zombie3.zomby, 16, 16, x, y, 5)) //if in zombie lane2
 				{
-					putImage(zombie3X, zombie3Y, 16, 16, black, 0, 0);
-                    zombie3X = -100;
+					putImage(z3, zombie3.zomby, 16, 16, black, 0, 0);
+                    z3 = -100;
                     break;
 				}
-                if (isInside(zombie4X, zombie4Y, 16, 16, x, y, 5)) //if in zombie lane2
+                if (isInside(z4, zombie4.zomby, 16, 16, x, y, 5)) //if in zombie lane2
 				{
-					putImage(zombie4X, zombie4Y, 16, 16, black, 0, 0);
-                    zombie4X = -100;
+					putImage(z4, zombie4.zomby, 16, 16, black, 0, 0);
+                    z4 = -100;
                     break;
 				}
 				
@@ -243,6 +338,7 @@ int main()
 }// end main()
 
 
+
 // --------------------------------------------------------------------------------- TIMING & CLOCK
 void initSysTick(void)
 {
@@ -257,35 +353,6 @@ void SysTick_Handler(void)
 	milliseconds++;
 }
 
-void initClock(void)
-{
-// This is potentially a dangerous function as it could
-// result in a system with an invalid clock signal - result: a stuck system
-        // Set the PLL up
-        // First ensure PLL is disabled
-        RCC->CR &= ~(1u<<24);
-        while( (RCC->CR & (1 <<25))); // wait for PLL ready to be cleared
-        
-// Warning here: if system clock is greater than 24MHz then wait-state(s) need to be
-// inserted into Flash memory interface
-				
-        FLASH->ACR |= (1 << 0);
-        FLASH->ACR &=~((1u << 2) | (1u<<1));
-        // Turn on FLASH prefetch buffer
-        FLASH->ACR |= (1 << 4);
-        // set PLL multiplier to 12 (yielding 48MHz)
-        RCC->CFGR &= ~((1u<<21) | (1u<<20) | (1u<<19) | (1u<<18));
-        RCC->CFGR |= ((1<<21) | (1<<19) ); 
-
-        // Need to limit ADC clock to below 14MHz so will change ADC prescaler to 4
-        RCC->CFGR |= (1<<14);
-
-        // and turn the PLL back on again
-        RCC->CR |= (1<<24);        
-        // set PLL as system clock source 
-        RCC->CFGR |= (1<<1);
-}
-
 void delay(volatile uint32_t dly)
 {
 	uint32_t end_time = dly + milliseconds;
@@ -296,7 +363,7 @@ void delay(volatile uint32_t dly)
 
 // --------------------------------------------------------------------------------- THEME MUSIC
 
-void playNoteWithDuration(uint32_t freq, int duration) 
+void playNoteWithDuration(uint32_t freq, int duration)
 {
 	playNote(freq);  // Set frequency
 	delay_ms(duration); // Set duration
@@ -305,7 +372,8 @@ void playNoteWithDuration(uint32_t freq, int duration)
 
 }// end playNoteWithDuration
 
-void delay_ms(uint32_t ms) {
+void delay_ms(uint32_t ms)
+{
     SysTick->LOAD = (48000 * ms) - 1;  // Assuming 48MHz clock, 1ms delay
     SysTick->VAL = 0;                  // Reset the counter
     SysTick->CTRL = 5;                  // Enable SysTick, use system clock
@@ -380,6 +448,35 @@ void playPvZTheme(void)
 
 // --------------------------------------------------------------------------------- INITIALISATION
 
+void initClock(void)
+{
+// This is potentially a dangerous function as it could
+// result in a system with an invalid clock signal - result: a stuck system
+        // Set the PLL up
+        // First ensure PLL is disabled
+        RCC->CR &= ~(1u<<24);
+        while( (RCC->CR & (1 <<25))); // wait for PLL ready to be cleared
+        
+// Warning here: if system clock is greater than 24MHz then wait-state(s) need to be
+// inserted into Flash memory interface
+				
+        FLASH->ACR |= (1 << 0);
+        FLASH->ACR &=~((1u << 2) | (1u<<1));
+        // Turn on FLASH prefetch buffer
+        FLASH->ACR |= (1 << 4);
+        // set PLL multiplier to 12 (yielding 48MHz)
+        RCC->CFGR &= ~((1u<<21) | (1u<<20) | (1u<<19) | (1u<<18));
+        RCC->CFGR |= ((1<<21) | (1<<19) ); 
+
+        // Need to limit ADC clock to below 14MHz so will change ADC prescaler to 4
+        RCC->CFGR |= (1<<14);
+
+        // and turn the PLL back on again
+        RCC->CR |= (1<<24);        
+        // set PLL as system clock source 
+        RCC->CFGR |= (1<<1);
+}
+
 void enablePullUp(GPIO_TypeDef *Port, uint32_t BitNumber)
 {
 	Port->PUPDR = Port->PUPDR &~(3u << BitNumber*2); // clear pull-up resistor bits
@@ -432,9 +529,49 @@ void setupIO()
 	pinMode(GPIOB,5,0);
 	pinMode(GPIOA,8,0);
 	pinMode(GPIOA,11,0);
+	pinMode(GPIOA,0,1);
+	pinMode(GPIOA,1,1);
 	enablePullUp(GPIOB,4);
 	enablePullUp(GPIOB,5);
 	enablePullUp(GPIOA,11);
 	enablePullUp(GPIOA,8);
 
 }// end setupIO
+
+// -------------------------------------------------------------------- LED
+
+void redOn()
+{
+    GPIOA->ODR |= (1 << 1);
+}
+void redOff()
+{
+    GPIOA->ODR &= ~(1 << 1);
+}
+void greenOn()
+{
+    GPIOA->ODR |= (1 << 0);
+}
+void greenOff()
+{
+    GPIOA->ODR &= ~(1 << 0);
+}
+
+uint32_t randomise(uint32_t lower, uint32_t upper)
+{
+	return (prbs()%(upper-lower))+lower;
+}
+uint32_t prbs()
+{
+	// This is an unverified 31 bit PRBS generator
+	// It should be maximum length but this has not been verified 
+	unsigned long new_bit=0;	
+
+    new_bit= ((shift_register & (1<<27))>>27) ^ ((shift_register & (1<<30))>>30);
+    new_bit= ~new_bit;
+    new_bit = new_bit & 1;
+    shift_register=shift_register << 1;
+    shift_register=shift_register | (new_bit);
+		
+	return shift_register & 0x7fffffff; // return 31 LSB's 
+}
