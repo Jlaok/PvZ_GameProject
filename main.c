@@ -18,22 +18,28 @@ struct zombies
 void initClock(void);
 void initSysTick(void);
 void SysTick_Handler(void);
-void delay(volatile uint32_t dly);
+void delay(uint32_t dly);
 uint32_t prbs();
 void setupIO();
 int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint16_t py, uint16_t padding);
 void enablePullUp(GPIO_TypeDef *Port, uint32_t BitNumber);
 void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode);
 void playWinTheme();
-void playPVZTheme();
-void delay_ms(uint32_t ms);
+void playPVZTheme(void);
+void updateNotePlayback();
+void testsound();
+//void delay_ms(uint32_t ms);
 void playNoteWithDuration(uint32_t freq, int duration);
 void greenOn(void);
 void greenOff(void);
 void redOn(void);
 void redOff(void);
 uint32_t randomise(uint32_t,uint32_t);
+uint32_t millis(void);
+void updateNotePlayback();
 volatile uint32_t milliseconds;
+uint32_t noteStartTime = 0;
+int noteDuration = 0;
 
 
 const uint16_t black[]= //black 16x16
@@ -72,6 +78,9 @@ int main()
 	int z2 = 0;
 	int z3 = 0;
 	int z4 = 0;
+	int winThemePlayed = 0;
+	int loseThemePlayed = 0;
+	int PVZthemePlayed = 0;
 
 	uint16_t x = 20;
 	uint16_t y = 80;
@@ -85,6 +94,9 @@ int main()
 	putImage(20,80,16,16,shooter,0,0); //displays player starting position
 	greenOn();
 	redOn();
+
+	
+
 
 	struct zombies zombie1;
 	struct zombies zombie2;
@@ -113,6 +125,7 @@ int main()
 
 	while(1)
 	{
+
 		if (zombieDead == count)
 		{
 		random = randomise(1,6); // chooses a random zombie to send
@@ -126,7 +139,7 @@ int main()
 
 			if (z1 < 0) 
 			{
-				putImage(z2,zombie1.zomby,16,16,black,0,0);
+				putImage(z1,zombie1.zomby,16,16,black,0,0);
 				zombieDead++;
 				z1 = zombie1.zombx;
 				//zombie1X = 100; // Reset zombie to start position if it moves off the screen
@@ -174,34 +187,52 @@ int main()
 				//zombie1X = 100; // Reset zombie to start position if it moves off the screen
 			}
 		}
-
+// --------------------------------------------------------------------------------------------------- WIN	
+		// if 10 zombies killed, player wins
         if (zombieDead == 10)
         {
-            initSound(); 
-			printTextX2("YOU WIN!", 10, 20, RGBToWord(0xff,0xff,0), 0);
-            random = 100;
-			putImage(zombie1.zombx, zombie1.zomby, 16, 16, black, 0, 0);
-			putImage(zombie2.zombx, zombie2.zomby, 16, 16, black, 0, 0);
-			putImage(zombie3.zombx, zombie3.zomby, 16, 16, black, 0, 0);
-			putImage(zombie4.zombx, zombie4.zomby, 16, 16, black, 0, 0);
-			playWinTheme();
-        }
-		else
-		{
-			// NADA
-		}
+			if (winThemePlayed == 0) 
+			{
+				initSound(); 
+				printTextX2("YOU WIN!", 10, 20, RGBToWord(0xff,0xff,0), 0);
+				random = 100;
+				putImage(zombie1.zombx, zombie1.zomby, 16, 16, black, 0, 0);
+				putImage(zombie2.zombx, zombie2.zomby, 16, 16, black, 0, 0);
+				putImage(zombie3.zombx, zombie3.zomby, 16, 16, black, 0, 0);
+				putImage(zombie4.zombx, zombie4.zomby, 16, 16, black, 0, 0);
+				playWinTheme();
+				winThemePlayed = 1;  // Set the flag to indicate the win theme has been played
+			}// end inner if
+
+        }// end if
 		
+// --------------------------------------------------------------------------------------------------- LOSE
+		// if ANY zombie has an x == 20, player loses
+		if (z1 == 20 || z2 == 20 || z3 == 20 || z4 == 20)
+		{
+			if (loseThemePlayed == 0)
+			{
+				initSound();
+				printTextX2("GAMEOVER!", 10, 20, RGBToWord(0xff,0xff,0), 0);
+				playLoseTheme();
+				loseThemePlayed = 1;
+			}// end inner if 
+
+		}// end if
+/*
 		if (z1 == 20)
 		{
-			initSound();
-			printTextX2("GAMEOVER!", 10, 20, RGBToWord(0xff,0xff,0), 0);
-			playLoseTheme();
+			if (loseThemePlayed == 0)
+			{
+				initSound();
+				printTextX2("GAMEOVER!", 10, 20, RGBToWord(0xff,0xff,0), 0);
+				playLoseTheme();
+				loseThemePlayed = 1;
+			}
 		}
 		else if (z2 == 20)
 		{
-			initSound();
-			printTextX2("GAMEOVER!", 10, 20, RGBToWord(0xff,0xff,0), 0);
-			playLoseTheme();
+			
 		}
 		else if (z3 == 20)
 		{
@@ -215,16 +246,16 @@ int main()
 			printTextX2("GAMEOVER!", 10, 20, RGBToWord(0xff,0xff,0), 0);
 			playLoseTheme();
 		}
-		
+*/		
 		vmoved = 0; //resets if player moved so it doesnt stay in loop
-		// --------------------------------------------------------------------------------- IF RIGHT PRESSED
+
+		// --------------------------------------------------------------------------------- IF RIGHT PRESSED > (SHOOTING)
 		if ((GPIOB->IDR & (1 << 4))==0) // right pressed
 		{	
 			initSound();  // Initialize sound
 			putImage((x+20),y,16,16,pellet,0,0); // puts pellet 20 spots away from peashooter to ensure wont make it disappear
 			tempx = x; // stores x
 			x = x+20; // moves pellet out
-			
 
 			while (x < 100) // while != isinside? so pellet is not going til end
 			{
@@ -265,7 +296,7 @@ int main()
 
 		}// end if right is pressed
 
-		// --------------------------------------------------------------------------------- IF LEFT PRESSED
+		// --------------------------------------------------------------------------------- IF LEFT PRESSED <
 		/*
 		if ((GPIOB->IDR & (1 << 5))==0) // left pressed
 		{			
@@ -278,7 +309,7 @@ int main()
 			}			
 		} 
 		*/
-		// --------------------------------------------------------------------------------- IF DOWN PRESSED
+		// --------------------------------------------------------------------------------- IF DOWN PRESSED v
 		if ( (GPIOA->IDR & (1 << 11)) == 0) // down pressed
 		{
 			if (y < 140)
@@ -288,7 +319,7 @@ int main()
 			}// end inner if
 
 		}// end if
-		// --------------------------------------------------------------------------------- IF UP PRESSED
+		// --------------------------------------------------------------------------------- IF UP PRESSED ^
 		if ( (GPIOA->IDR & (1 << 8)) == 0) // up pressed
 		{			
 			if (y > 16)
@@ -342,7 +373,7 @@ int main()
 // --------------------------------------------------------------------------------- TIMING & CLOCK
 void initSysTick(void)
 {
-	SysTick->LOAD = 48000;
+	SysTick->LOAD = 48000 - 1;
 	SysTick->CTRL = 7;
 	SysTick->VAL = 10;
 	__asm(" cpsie i "); // enable interrupts
@@ -353,25 +384,40 @@ void SysTick_Handler(void)
 	milliseconds++;
 }
 
-void delay(volatile uint32_t dly)
+void delay(uint32_t dly)
 {
 	uint32_t end_time = dly + milliseconds;
 	while(milliseconds != end_time)
+	{
 		__asm(" wfi "); // sleep
+	}
 }
 
 
-// --------------------------------------------------------------------------------- THEME MUSIC
+// --------------------------------------------------------------------------------- DELAYS FOR THEMES
+// Get the current time in milliseconds
+uint32_t millis(void) 
+{
+    return milliseconds;
+}
 
 void playNoteWithDuration(uint32_t freq, int duration)
 {
-	playNote(freq);  // Set frequency
-	delay_ms(duration); // Set duration
-	TIM14->CR1 &= ~(1 << 0); // Stop sound after note
-	delay_ms(50); // Short silence between notes
-
+	playNote(freq);             // Start playing the note
+    noteStartTime = millis();   // Store the start time
+    noteDuration = duration;    // Store the duration
 }// end playNoteWithDuration
 
+void updateNotePlayback() 
+{
+    if (millis() - noteStartTime >= noteDuration) 
+	{
+        TIM14->CR1 &= ~(1 << 0); // Stop sound after note
+    }
+}
+
+// delay_ms() doesnt allow the game to continue after the function is executed, hence why we used millis()
+/*
 void delay_ms(uint32_t ms)
 {
     SysTick->LOAD = (48000 * ms) - 1;  // Assuming 48MHz clock, 1ms delay
@@ -382,69 +428,119 @@ void delay_ms(uint32_t ms)
 
     SysTick->CTRL = 0;  // Disable SysTick
 }// end delay_ms
-	
+*/
+
+// --------------------------------------------------------------------------------- THEME MUSIC
+
 void playWinTheme(void)
 {
-    playNoteWithDuration(G3, 300);
+	playNoteWithDuration(G3, 300);
+    while (millis() - noteStartTime < noteDuration) updateNotePlayback();
+
     playNoteWithDuration(A3, 300);
+    while (millis() - noteStartTime < noteDuration) updateNotePlayback();
+
     playNoteWithDuration(B3, 300);
+    while (millis() - noteStartTime < noteDuration) updateNotePlayback();
+
     playNoteWithDuration(C4, 300);
+    while (millis() - noteStartTime < noteDuration) updateNotePlayback();
+
     playNoteWithDuration(B3, 300);
+    while (millis() - noteStartTime < noteDuration) updateNotePlayback();
+
     playNoteWithDuration(C4, 300);
-}
+    while (millis() - noteStartTime < noteDuration) updateNotePlayback();
+}// end playWinTheme()
+
 void playLoseTheme(void)
 {
-    playNoteWithDuration(A3, 300);
+	playNoteWithDuration(A3, 300);
+    while (millis() - noteStartTime < noteDuration) updateNotePlayback();
+
     playNoteWithDuration(F3, 300);
+    while (millis() - noteStartTime < noteDuration) updateNotePlayback();
+
     playNoteWithDuration(CS3_Db3, 300);
-}
-void playPvZTheme(void) 
+    while (millis() - noteStartTime < noteDuration) updateNotePlayback();
+}// end playLoseTheme()
+
+void playPVZTheme(void) 
 {
-	// -------------------------------------------------------- A 
 	int i = 0;
-	for (i = 0; i < 3; i++) // plays this part 3 times 
+
+	// AAAB structure
+
+	// loops 3 times for A 
+    for (i = 0; i < 3; i++) 
 	{
-		playNoteWithDuration(CS5_Db5, 300); 	// D flat
-		playNoteWithDuration(D5, 300); 			// D
-		playNoteWithDuration(CS5_Db5, 300); 	// D flat
-		playNoteWithDuration(D5, 300); 			// D
+        playNoteWithDuration(CS5_Db5, 300);
+        while (millis() - noteStartTime < noteDuration) updateNotePlayback();
 
-		playNoteWithDuration(AS4_Bb4, 300); 	// B flat
-		playNoteWithDuration(G4, 300);			// G
-		playNoteWithDuration(G4, 300);			// G
-		playNoteWithDuration(NoNote, 155);		// delay
+        playNoteWithDuration(D5, 300);
+        while (millis() - noteStartTime < noteDuration) updateNotePlayback();
 
-		playNoteWithDuration(AS4_Bb4, 300);		// B flat
-		playNoteWithDuration(G4, 300);			// G
-		playNoteWithDuration(G4, 300);			// G
-		playNoteWithDuration(NoNote, 155);		// delay
-		
-		playNoteWithDuration(D5, 300);			// D
-		playNoteWithDuration(G4, 300);			// G
-		playNoteWithDuration(G4, 300);			// G
-		playNoteWithDuration(NoNote, 155);		// delay
+        playNoteWithDuration(CS5_Db5, 300);
+        while (millis() - noteStartTime < noteDuration) updateNotePlayback();
 
-	}// end for
-	// -------------------------------------------------------- B
+        playNoteWithDuration(D5, 300);
+        while (millis() - noteStartTime < noteDuration) updateNotePlayback();
 
-	playNoteWithDuration(A4, 300); 				// A
-	playNoteWithDuration(AS4_Bb4, 300);			// B flat
-	playNoteWithDuration(A4, 300); 				// A
-	playNoteWithDuration(AS4_Bb4, 300); 		// B flat
+        playNoteWithDuration(AS4_Bb4, 300);
+        while (millis() - noteStartTime < noteDuration) updateNotePlayback();
 
-	playNoteWithDuration(G4, 300); 				// G
-	playNoteWithDuration(D4, 300);				// D
-	playNoteWithDuration(D4, 300);				// D
-	playNoteWithDuration(CS4_Db4, 300);			// D flat
-	playNoteWithDuration(D4, 300);				// D
+        playNoteWithDuration(G4, 300);
+        while (millis() - noteStartTime < noteDuration) updateNotePlayback();
 
-	playNoteWithDuration(G4, 300);				// G
-	playNoteWithDuration(AS4_Bb4, 300);			// B flat
-	playNoteWithDuration(CS5_Db5, 300);			// D flat
-	playNoteWithDuration(CS5_Db5, 300);			// D flat
-		
+        playNoteWithDuration(G4, 300);
+        while (millis() - noteStartTime < noteDuration) updateNotePlayback();
+
+        playNoteWithDuration(NoNote, 155);
+        while (millis() - noteStartTime < noteDuration) updateNotePlayback();
+    }
+
+	// B plays once
+    playNoteWithDuration(A4, 300);
+    while (millis() - noteStartTime < noteDuration) updateNotePlayback();
+
+    playNoteWithDuration(AS4_Bb4, 300);
+    while (millis() - noteStartTime < noteDuration) updateNotePlayback();
+
+    playNoteWithDuration(A4, 300);
+    while (millis() - noteStartTime < noteDuration) updateNotePlayback();
+
+    playNoteWithDuration(AS4_Bb4, 300);
+    while (millis() - noteStartTime < noteDuration) updateNotePlayback();
+
+    playNoteWithDuration(G4, 300);
+    while (millis() - noteStartTime < noteDuration) updateNotePlayback();
+
+    playNoteWithDuration(D4, 300);
+    while (millis() - noteStartTime < noteDuration) updateNotePlayback();
+
+    playNoteWithDuration(D4, 300);
+    while (millis() - noteStartTime < noteDuration) updateNotePlayback();
+
+    playNoteWithDuration(CS4_Db4, 300);
+    while (millis() - noteStartTime < noteDuration) updateNotePlayback();
+
+    playNoteWithDuration(D4, 300);
+    while (millis() - noteStartTime < noteDuration) updateNotePlayback();
+
+    playNoteWithDuration(G4, 300);
+    while (millis() - noteStartTime < noteDuration) updateNotePlayback();
+
+    playNoteWithDuration(AS4_Bb4, 300);
+    while (millis() - noteStartTime < noteDuration) updateNotePlayback();
+
+    playNoteWithDuration(CS5_Db5, 300);
+    while (millis() - noteStartTime < noteDuration) updateNotePlayback();
+
+    playNoteWithDuration(CS5_Db5, 300);
+    while (millis() - noteStartTime < noteDuration) updateNotePlayback();
+
 	
-}// end playPVZTheme
+}// end playPVZTheme()
 
 // --------------------------------------------------------------------------------- INITIALISATION
 
@@ -484,8 +580,6 @@ void enablePullUp(GPIO_TypeDef *Port, uint32_t BitNumber)
 }
 void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode)
 {
-	/*
-	*/
 	uint32_t mode_value = Port->MODER;
 	Mode = Mode << (2 * BitNumber);
 	mode_value = mode_value & ~(3u << (BitNumber * 2));
