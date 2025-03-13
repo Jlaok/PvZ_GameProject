@@ -42,7 +42,7 @@ void updateNotePlayback();
 volatile uint32_t milliseconds;
 uint32_t noteStartTime = 0;
 int noteDuration = 0;
-int mainmenu(int);
+int mainmenu(void);
 
 
 const uint16_t black[]= //black 16x16
@@ -142,7 +142,7 @@ int main()
 
 
 
-	difmod = mainmenu(difficulty);	//main menu at the start of the game
+	difmod = mainmenu();	//main menu at the start of the game
 	
 
 
@@ -703,68 +703,58 @@ uint32_t prbs()
 }
 
 
-int mainmenu(int dif)
+int mainmenu(void)
 {	
+	int dif = 0;
 	int menu = 1;//in meni
-
 	
 
 	while(menu == 1)
 	{
 		
-		if ((GPIOB->IDR & (1 << 5))==0)//left is pressed
+		if ((GPIOB->IDR & (1 << 5))==0)//left is pressed <
 		{
 			menu = 0;//exit menu
 		}	
 
-		if ((GPIOB->IDR & (1 << 4))==0) // right pressed
+		if ((GPIOB->IDR & (1 << 4))==0) // right pressed >
 		{
-			dif = dif + 1;
+			if (dif < 3)
+    		{
+        		dif++;
+   			}
+    		while ((GPIOB->IDR & (1 << 4)) == 0);
+		}
 
+		if (dif == 0)
+		{
+			printText("No Difficulty", 10, 20, RGBToWord(000,0xff,0), 0);
+			printText("Press right to change diff", 10, 40, RGBToWord(000,0xff,0), 0);
 		}
 
 		if (dif == 1)
 		{	
-			//redOff();
 			//greenOn();
-			printTextX2("Difficulty: ZOMBOSS", 10, 20, RGBToWord(000,000,0), 0);
-			printTextX2("Difficulty: Sunflower", 10, 20, RGBToWord(000,0xff,0), 0);
+			printText("Diff: 1", 10, 20, RGBToWord(000,0xff,0), 0);
 			
 		}
 
-		else if (dif == 2)
+		if (dif == 2)
 		{
-			//greenOff();
 			//yellowOn();
-			printTextX2("Difficulty: Sunflower", 10, 20, RGBToWord(000,000,0), 0);
-			printTextX2("Difficulty: Crazy Dave", 10, 20, RGBToWord(0xff,0xff,0), 0);
+			printText("Diff: 2", 10, 20, RGBToWord(0xff,0xff,0), 0);
 		}
-		else
+
+		if (dif == 3)
 		{
-			//yellowOff();
 			//redOn();
-			printTextX2("Difficulty: Crazy Dave", 10, 20, RGBToWord(000,000,0), 0);
-			printTextX2("Difficulty: ZOMBOSS", 10, 20, RGBToWord(0xff,0xff,0), 0);
+			printText("Diff: 3", 10, 20, RGBToWord(0xff,0xff,0), 0);
 		}
-	}
-	
-	if (dif == 1 )
-	{
-		printTextX2("Difficulty: Sunflower", 10, 20, RGBToWord(000,000,0), 0);
-	}
-
-	else if (dif ==2)
-	{
-		printTextX2("Difficulty: Crazy Dave", 10, 20, RGBToWord(000,000,0), 0);
-	}
-
-	else 
-	{
-		printTextX2("Difficulty: ZOMBOSS", 10, 20, RGBToWord(000,000,0), 0);
 	}
 	
 	return dif;
 }
+
 
 /*
 void laygrass(void)
@@ -781,11 +771,6 @@ void laygrass(void)
 				x = x + 16;
 			}
 		y = y +16;
+}
 */
-
-
-
-
-
-
 
