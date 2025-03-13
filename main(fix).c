@@ -38,7 +38,7 @@ void redOff(void);
 void yellowOn(void);
 void yellowOff(void);
 uint32_t randomise(uint32_t,uint32_t);
-void checkhealth(int,uint16_t,uint16_t);
+int checkhealth(int,uint16_t,uint16_t,int);
 uint32_t millis(void);
 void updateNotePlayback();
 volatile uint32_t milliseconds;
@@ -91,18 +91,17 @@ int main()
 	setupIO();
 	putImage(20,80,16,16,shooter,0,0); //displays player starting position
 	greenOn();
+	yellowOn();
 	redOn();
 
 	while(1)
 	{
-	int userchar = 0;
 	int gamecondition = 0;
 	int toggle = 0;
 	int vmoved = 0;
 	int tempx = 0;
 	int random = -1;
 	int zombieDead = 0;
-	int var1 = 5;
 	int count = 0;
 	float z1 = 0;
 	float z2 = 0;
@@ -111,6 +110,7 @@ int main()
 	int winThemePlayed = 0;
 	int PVZthemePlayed = 0;
 	int playerhealth = 0;
+	int flash = 0;
 
 	uint16_t x = 20;
 	uint16_t y = 80;
@@ -162,7 +162,7 @@ int main()
 
 			if (zombie1.zombnum == random)
 			{
-				z1 = z1 - 0.3; // Move zombie1 to the left by 0.3 pixel per frame
+				z1 = z1 - 1; // Move zombie1 to the left by 0.3 pixel per frame
 				putImage(z1, zombie1.zomby, 16, 16, zombie, 0, 0);
 
 				if (z1 < 0) 
@@ -176,7 +176,7 @@ int main()
 
 			else if (zombie2.zombnum == random)
 			{
-				z2 = z2 - 0.3; // Move zombie1 to the left by 0.3 pixel per frame
+				z2 = z2 - 1; // Move zombie1 to the left by 0.3 pixel per frame
 				putImage(z2, zombie2.zomby, 16, 16, zombie, 0, 0);
 
 				if (z2 < 0) 
@@ -190,7 +190,7 @@ int main()
 
 			else if (zombie3.zombnum == random)
 			{
-				z3 = z3 - 0.3; // Move zombie1 to the left by 0.3 pixel per frame
+				z3 = z3 - 1; // Move zombie1 to the left by 0.3 pixel per frame
 				putImage(z3, zombie3.zomby, 16, 16, zombie, 0, 0);
 
 				if (z3 < 0) 
@@ -204,7 +204,7 @@ int main()
 
 			else if (zombie4.zombnum == random)
 			{
-				z4 = z4 - 0.3; // Move zombie1 to the left by 0.3 pixel per frame
+				z4 = z4 - 1; // Move zombie1 to the left by 0.3 pixel per frame
 				putImage(z4, zombie4.zomby, 16, 16, zombie, 0, 0);
 
 				if (z4 < 0) 
@@ -239,9 +239,16 @@ int main()
 			// if ANY zombie has an x == 20, player loses
 			if (z1 < 20 || z2 < 20 || z3 < 20 || z4 < 20)
 			{
-				playerhealth = playerhealth - 1;
+				z1 = zombie1.zombx;
+				z2 = zombie2.zombx;
+				z3 = zombie3.zombx;
+				z4 = zombie4.zombx;
 
-				if (playerhealth < 1)
+				if (playerhealth != 0)
+				{
+					playerhealth = playerhealth - 1;
+				}
+				if (playerhealth == 0)
 				{
 					putImage(x,y,16,16,grave,0,0);
 					greenOff();
@@ -250,17 +257,19 @@ int main()
 					initSound();
 					printTextX2("GAMEOVER!", 10, 20, RGBToWord(0xff,0xff,0), 0);
 					playLoseTheme();
+					fillRectangle(0,0,128,160,0);
 					gamecondition = 0;
 				}// end inner if 
+				
 
 			}// end if
 			
-			checkhealth(playerhealth,x,y);
+			flash = checkhealth(playerhealth,x,y,flash);
 					
 			vmoved = 0; //resets if player moved so it doesnt stay in loop
 
 			// --------------------------------------------------------------------------------- IF RIGHT PRESSED > (SHOOTING)
-			if ((GPIOB->IDR & (1 << 4)) ==0 || userchar == ' ') // right pressed
+			if ((GPIOB->IDR & (1 << 4)) == 0 ) // right pressed
 			{	
 				initSound();  // Initialize sound
 				putImage((x+20),y,16,16,pellet,0,0); // puts pellet 20 spots away from peashooter to ensure wont make it disappear
@@ -276,22 +285,30 @@ int main()
 					if (isInside(z1, zombie1.zomby, 16, 16, x, y, 5)) //if in zombie lane1
 					{
 						putImage(z1, zombie1.zomby, 16, 16, black, 0, 0); //places black over zombie start -> make into zombies current location
-						z1 = -100;
+						z1 = zombie1.zombx;
+						zombieDead = zombieDead + 1;
+						break;
 					}
 					if (isInside(z2, zombie2.zomby, 16, 16, x, y, 5)) //if in zombie lane2
 					{
 						putImage(z2, zombie2.zomby, 16, 16, black, 0, 0);
-						z2 = -100;
+						z2 = zombie2.zombx;
+						zombieDead = zombieDead + 1;
+						break;
 					}
 					if (isInside(z3, zombie3.zomby, 16, 16, x, y, 5)) //if in zombie lane2
 					{
 						putImage(z3, zombie3.zomby, 16, 16, black, 0, 0);
-						z3 = -100;
+						z3 = zombie3.zombx;
+						zombieDead = zombieDead + 1;
+						break;
 					}
 					if (isInside(z4, zombie4.zomby, 16, 16, x, y, 5)) //if in zombie lane2
 					{
 						putImage(z4, zombie4.zomby, 16, 16, black, 0, 0);
-						z4 = -100;
+						z4 = zombie4.zombx;
+						zombieDead = zombieDead + 1;
+						break;
 					}
 					
 					
@@ -316,7 +333,7 @@ int main()
 			} 
 			*/
 			// --------------------------------------------------------------------------------- IF DOWN PRESSED v
-			if ( (GPIOA->IDR & (1 << 11)) == 0 || userchar == 's' || userchar == 'S') // down pressed
+			if ( (GPIOA->IDR & (1 << 11)) == 0 ) // down pressed
 			{
 				if (y < 140)
 				{
@@ -326,7 +343,7 @@ int main()
 
 			}// end if
 			// --------------------------------------------------------------------------------- IF UP PRESSED ^
-			if ( (GPIOA->IDR & (1 << 8)) == 0 || userchar == 'w' || userchar == 'W') // up pressed
+			if ( (GPIOA->IDR & (1 << 8)) == 0 ) // up pressed
 			{			
 				if (y > 16)
 				{
@@ -632,7 +649,7 @@ void setupIO()
 	pinMode(GPIOA,11,0);
 	pinMode(GPIOA,0,1);
 	pinMode(GPIOA,1,1); 
-	pinMode(GPIOB,0,1);
+	pinMode(GPIOA,9,1);
 	enablePullUp(GPIOB,4);
 	enablePullUp(GPIOB,5);
 	enablePullUp(GPIOA,11);
@@ -652,11 +669,11 @@ void redOff()
 }
 void yellowOn()
 {
-    GPIOB->ODR |= (1 << 4);
+    GPIOA->ODR |= (1 << 9);
 }
 void yellowOff()
 {
-    GPIOB->ODR &= ~(1 << 4);
+    GPIOA->ODR &= ~(1 << 9);
 }
 void greenOn()
 {
@@ -686,7 +703,7 @@ uint32_t prbs()
 	return shift_register & 0x7fffffff; // return 31 LSB's 
 }
 
-void checkhealth(int playerhealth,uint16_t x,uint16_t y)
+int checkhealth(int playerhealth,uint16_t x,uint16_t y,int flashhappened)
 {
 	if (playerhealth == 2)
 	{
@@ -700,19 +717,11 @@ void checkhealth(int playerhealth,uint16_t x,uint16_t y)
 		putImage(x,y,16,16,pea1hp,0,0);
 		greenOff();
 		yellowOff();
-		int redcount = 0;
-		while (redcount < 5)
-		{
-			redOn();
-			delay(10);
-			redOff();
-		}
 	}
 	else
 	{
 		// nothing
 	}
-
 }
 
 
