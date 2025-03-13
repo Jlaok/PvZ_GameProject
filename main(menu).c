@@ -43,6 +43,7 @@ volatile uint32_t milliseconds;
 uint32_t noteStartTime = 0;
 int noteDuration = 0;
 int mainmenu(void);
+void laygrass(void);
 
 
 const uint16_t black[]= //black 16x16
@@ -144,6 +145,7 @@ int main()
 
 	difmod = mainmenu();	//main menu at the start of the game
 	
+	laygrass();
 
 
 
@@ -765,7 +767,7 @@ int mainmenu(void)
 }
 
 
-/*
+
 void laygrass(void)
 {
 	int x = 0;
@@ -780,6 +782,8 @@ void laygrass(void)
 				x = x + 16;
 			}
 		y = y +16;
+	
+	
 }
-*/
+
 
