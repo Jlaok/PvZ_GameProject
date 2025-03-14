@@ -103,6 +103,7 @@ const uint16_t grave[]= //shooter at 0hp
 
 int main()
 {
+	initSerial();
 	initClock();
 	initSysTick();
 	setupIO();
@@ -214,12 +215,83 @@ int main()
 
 			// while game condition is 1, play game
 			while(gamecondition == 1)
-			{
+			{	
+				
 				// count = the amount of zombies dead, choose a random zombie and count++
 				if (zombieDead == count)
 				{
 					random = randomise(1,6); // chooses a random number to spawn a zombie
 					count++;
+
+					
+					switch(zombieDead)//switch to display amount of zombies left. checks zombie dead
+					{
+						case 0:
+							{
+								printText("zom left: 10", 10, 5, RGBToWord(255,0,0),0);
+								break;
+							}
+
+						case 1:
+							{
+								printText("zom left: 9 ", 10, 5, RGBToWord(255,0,0),0);
+								break;
+							}
+						
+						case 2:
+							{
+								printText("zom left: 8 ", 10, 5, RGBToWord(255,0,0),0);
+								break;
+							}
+							
+						case 3:
+							{
+								printText("zom left: 7 ", 10, 5, RGBToWord(255,0,0),0);
+								break;
+							}
+						case 4:
+							{
+								printText("zom left: 6 ", 10, 5, RGBToWord(255,0,0),0);
+								break;
+							}
+						case 5:
+							{
+								printText("zom left: 5 ", 10, 5, RGBToWord(255,0,0),0);
+								break;
+							}
+						case 6:
+							{
+								printText("zom left: 4 ", 10, 5, RGBToWord(255,0,0),0);
+								break;
+							}
+						case 7:
+							{
+								printText("zom left: 3 ", 10, 5, RGBToWord(255,0,0),0);
+								break;
+							}
+						
+						case 8:
+							{
+								printText("zom left: 2 ", 10, 5, RGBToWord(255,0,0),0);
+								break;
+							}
+						
+						case 9:
+							{
+								printText("zom left: 1 ", 10, 5, RGBToWord(255,0,0),0);
+								break;
+							}
+						
+						case 10:
+							{
+								printText("zom left: 0 ", 10, 5, RGBToWord(255,0,0),0);
+								break;
+							}
+						default:
+								printText("zom left: idk", 10, 5, RGBToWord(255,0,0),0);//defauly for it if breaks
+					}
+							
+
 				}// end if (zombieDead == count)
 
 				// ---------------------------------------------------------- IF CHOSEN ZOMBIE = 1
@@ -230,7 +302,7 @@ int main()
 					
 					putImage(oldZombieX,zombie1.zomby, 16,16,black,0,0);
 					putImage(z1, zombie1.zomby, 16, 16, zombie, 0, 0);
-					countermove1 = countermove1 +  1;
+					countermove1 = countermove1 +  1;	
 
 					// to have a second frame of zombie moving (animate)
 					if (countermove1 % 3 == 0)
@@ -239,6 +311,7 @@ int main()
 						putImage(z1,zombie1.zomby, 16,16,zombieF2,0,0);
 					} // end if counter mod 3 = 0
 
+
 				} // end if (zombie1.zombnum == random)
 
 				// ---------------------------------------------------------- IF CHOSEN ZOMBIE = 2
@@ -246,16 +319,18 @@ int main()
 				{
 					oldZombie2X = z2;
 					z2 = z2 - zombieSpeed; // Move zombie2 to the left
+					
 					putImage(oldZombie2X,zombie2.zomby, 16,16,black,0,0);
 					putImage(z2, zombie2.zomby, 16, 16, zombie, 0, 0);
-					countermove2 = countermove2 +  1;
+					countermove2 = countermove2 +  1;	
 
 					// to have a second frame of zombie moving (animate)
 					if (countermove2 % 3 == 0)
 					{
-						putImage(oldZombie2X,zombie1.zomby, 16,16,black,0,0);
+						putImage(oldZombie2X,zombie2.zomby, 16,16,black,0,0);
 						putImage(z2,zombie2.zomby, 16,16,zombieF2,0,0);
 					} // end if counter mod 3 = 0
+					
 
 				} // end else if (zombie2.zombnum == random)
 
@@ -264,6 +339,7 @@ int main()
 				{
 					oldZombie3X = z3;
 					z3 = z3 - zombieSpeed; // Move zombie3 to the left
+				
 					putImage(oldZombie3X,zombie3.zomby, 16,16,black,0,0);
 					putImage(z3, zombie3.zomby, 16, 16, zombie, 0, 0);
 					countermove3 = countermove3 +  1;
@@ -274,6 +350,7 @@ int main()
 						putImage(oldZombie3X,zombie3.zomby, 16,16,black,0,0);
 						putImage(z3,zombie3.zomby, 16,16,zombieF2,0,0);
 					} // end if counter mod 3 = 0
+				
 
 				} // end else if (zombie3.zombnum == random)
 
@@ -282,6 +359,7 @@ int main()
 				{
 					oldZombie4X = z4;
 					z4 = z4 - zombieSpeed; // Move zombie1 to the left by 0.3 pixel per frame
+
 					putImage(oldZombie4X,zombie4.zomby, 16,16,black,0,0);
 					putImage(z4, zombie4.zomby, 16, 16, zombie, 0, 0);
 					countermove4 = countermove4 +  1;
@@ -291,7 +369,10 @@ int main()
 					{
 						putImage(oldZombie4X,zombie4.zomby, 16,16,black,0,0);
 						putImage(z4,zombie4.zomby, 16,16,zombieF2,0,0);
+					
 					} // end if counter mod 3 = 0
+					
+				
 
 				} // end else if (zombie4.zombnum == random)
 
@@ -303,6 +384,7 @@ int main()
 					// if win theme HAS NOT played
 					if (winThemePlayed == 0) 
 					{
+						eputs("Congrats, You Won...\n\n"); // displaying string on serial monitor
 						initSound(); 
 						printTextX2("YOU WIN!", 10, 20, RGBToWord(0xff,0xff,0), 0);
 						random = 100;
@@ -325,6 +407,7 @@ int main()
 				// if ANY zombie has an x == 20
 				if (z1 < 20 || z2 < 20 || z3 < 20 || z4 < 20)
 				{
+					eputs("Zombie has taken one of your lives...\n"); // displaying string on serial monitor
 					// make zombies disappear when they reach x = 20
 					if (z1 < 20)
 					{
@@ -361,6 +444,7 @@ int main()
 					{
 						if (loseThemePlayed == 0)
 						{
+							eputs("You Lost! Sorry... Try Again!\n\n"); // displaying string on serial monitor
 							putImage(x,y,16,16,grave,0,0);
 							greenOff();
 							yellowOff();
@@ -404,6 +488,7 @@ int main()
 							putImage(z1, zombie1.zomby, 16, 16, black, 0, 0); //places black over zombie start -> make into zombies current location
 							z1 = zombie1.zombx;
 							zombieDead = zombieDead + 1;
+							eputs("Zombie Dead!\n"); // displaying string on serial monitor
 							break;
 						}// end if pellet in zombie lane 1
 
@@ -413,6 +498,7 @@ int main()
 							putImage(z2, zombie2.zomby, 16, 16, black, 0, 0);
 							z2 = zombie2.zombx;
 							zombieDead = zombieDead + 1;
+							eputs("Zombie Dead!\n"); // displaying string on serial monitor
 							break;
 						}// end if pellet is in zombie lane 2
 
@@ -422,6 +508,7 @@ int main()
 							putImage(z3, zombie3.zomby, 16, 16, black, 0, 0);
 							z3 = zombie3.zombx;
 							zombieDead = zombieDead + 1;
+							eputs("Zombie Dead!\n"); // displaying string on serial monitor
 							break;
 						}// end if pellet is in zombie lane 3
 
@@ -431,6 +518,7 @@ int main()
 							putImage(z4, zombie4.zomby, 16, 16, black, 0, 0);
 							z4 = zombie4.zombx;
 							zombieDead = zombieDead + 1;
+							eputs("Zombie Dead!\n"); // displaying string on serial monitor
 							break;
 						}// end if pellet is in zombie lane 4
 						
@@ -480,15 +568,26 @@ int main()
 				if ((vmoved))
 				{
 					// only redraw if there has been some movement (reduces flicker)
-					fillRectangle(oldx,oldy,16,16,0);
+					//fillRectangle(oldx,oldy,16,16,0);
+					putImage(oldx,oldy,16,16,black,0,0);
 					oldx = x; //keeps position
 					oldy = y;					
 					if (vmoved == 1) //checks if player used ^ or v
 					{
 						if (toggle)
 						{
-
-							putImage(x,y,16,16,shooter,0,0); //puts image in new pos
+							if (playerhealth == 3)
+							{
+								putImage(x,y,16,16,shooter,0,0); //puts image in new pos
+							}
+							if (playerhealth == 2)
+							{
+								putImage(x,y,16,16,pea2hp,0,0); //puts image in new pos
+							}
+							if (playerhealth == 1)
+							{
+								putImage(x,y,16,16,pea1hp,0,0); //puts image in new pos
+							}
 
 						}// end inner inner if
 
@@ -497,7 +596,6 @@ int main()
 					}// end inner if 
 					else
 					{
-						//putImage(x,y,16,16,deco3,0,0);
 
 					}// end inner else
 
