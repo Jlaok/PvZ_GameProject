@@ -197,12 +197,12 @@ int main()
 			while(gamecondition == 1)
 			{	
 				
-
+				
 				if (zombieDead == count)
 				{
-					random =  1;//randomise(1,6); // chooses a random zombie to send
-
-					switch(zom_left)
+					random =  1;//randomise(1,6); // chooses a random zombie to send 
+					count++;
+					switch(zom_left) //switch statement to display amount of zombies left from 1 to 10
 					{
 						case 1:
 							{
@@ -262,7 +262,7 @@ int main()
 					}
 
 					
-					count++;
+					
 				}
 
 				if (zombie1.zombnum == random)
