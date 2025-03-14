@@ -261,6 +261,8 @@ int main()
 								printText("zom left: 10", 10, 5, RGBToWord(255,0,0),0);
 								break;
 							}
+						default:
+								printText("zom left: idk", 10, 5, RGBToWord(255,0,0),0);
 					}
 
 					
