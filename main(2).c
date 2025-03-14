@@ -200,7 +200,7 @@ int main()
 
 				if (zombieDead == count)
 				{
-					random =  1;//randomise(1,6); // chooses a random zombie to send
+					random =  randomise(1,6);//randomise(1,6); // chooses a random zombie to send
 
 					count++;
 
@@ -214,57 +214,57 @@ int main()
 
 						case 1:
 							{
-								printText("zom left: 9", 10, 5, RGBToWord(255,0,0),0);
+								printText("zom left: 9 ", 10, 5, RGBToWord(255,0,0),0);
 								break;
 							}
 						
 						case 2:
 							{
-								printText("zom left: 8", 10, 5, RGBToWord(255,0,0),0);
+								printText("zom left: 8 ", 10, 5, RGBToWord(255,0,0),0);
 								break;
 							}
 							
 						case 3:
 							{
-								printText("zom left: 7", 10, 5, RGBToWord(255,0,0),0);
+								printText("zom left: 7 ", 10, 5, RGBToWord(255,0,0),0);
 								break;
 							}
 						case 4:
 							{
-								printText("zom left: 6", 10, 5, RGBToWord(255,0,0),0);
+								printText("zom left: 6 ", 10, 5, RGBToWord(255,0,0),0);
 								break;
 							}
 						case 5:
 							{
-								printText("zom left: 5", 10, 5, RGBToWord(255,0,0),0);
+								printText("zom left: 5 ", 10, 5, RGBToWord(255,0,0),0);
 								break;
 							}
 						case 6:
 							{
-								printText("zom left: 4", 10, 5, RGBToWord(255,0,0),0);
+								printText("zom left: 4 ", 10, 5, RGBToWord(255,0,0),0);
 								break;
 							}
 						case 7:
 							{
-								printText("zom left: 3", 10, 5, RGBToWord(255,0,0),0);
+								printText("zom left: 3 ", 10, 5, RGBToWord(255,0,0),0);
 								break;
 							}
 						
 						case 8:
 							{
-								printText("zom left: 2", 10, 5, RGBToWord(255,0,0),0);
+								printText("zom left: 2 ", 10, 5, RGBToWord(255,0,0),0);
 								break;
 							}
 						
 						case 9:
 							{
-								printText("zom left: 1", 10, 5, RGBToWord(255,0,0),0);
+								printText("zom left: 1 ", 10, 5, RGBToWord(255,0,0),0);
 								break;
 							}
 						
 						case 10:
 							{
-								printText("zom left: 0", 10, 5, RGBToWord(255,0,0),0);
+								printText("zom left: 0 ", 10, 5, RGBToWord(255,0,0),0);
 								break;
 							}
 						default:
