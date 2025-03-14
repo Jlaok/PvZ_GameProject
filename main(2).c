@@ -140,7 +140,7 @@ int main()
 		int winThemePlayed = 0;
 		int playerhealth = 0;
 		int flash = 0;
-		int zom_left = 10;
+		
 		
 		uint16_t x = 20;
 		uint16_t y = 80;
@@ -297,7 +297,7 @@ int main()
 					{
 						putImage(z1,zombie1.zomby,16,16,black,0,0);
 						zombieDead++;
-						zom_left--;
+						
 						z1 = zombie1.zombx;
 						//zombie1X = 100; // Reset zombie to start position if it moves off the screen
 					}
@@ -320,7 +320,7 @@ int main()
 					{
 						putImage(z2,zombie2.zomby,16,16,black,0,0);
 						zombieDead++;
-						zom_left--;
+						
 						z2 = zombie2.zombx;
 						//zombie1X = 100; // Reset zombie to start position if it moves off the screen
 					}
@@ -344,7 +344,7 @@ int main()
 					{
 						putImage(z3,zombie3.zomby,16,16,black,0,0);
 						zombieDead++;
-						zom_left--;
+						
 						z3 = zombie3.zombx;
 						//zombie1X = 100; // Reset zombie to start position if it moves off the screen
 					}
@@ -368,7 +368,7 @@ int main()
 					{
 						putImage(z4,zombie4.zomby,16,16,black,0,0);
 						zombieDead++;
-						zom_left--;
+						
 						z4 = zombie4.zombx;
 						//zombie1X = 100; // Reset zombie to start position if it moves off the screen
 					}
