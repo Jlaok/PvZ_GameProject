@@ -204,7 +204,7 @@ int main()
 
 					count++;
 
-					switch(zombieDead)
+					switch(zombieDead)//switch to display amount of zombies left. checks zombie dead
 					{
 						case 0:
 							{
@@ -268,7 +268,7 @@ int main()
 								break;
 							}
 						default:
-								printText("zom left: idk", 10, 5, RGBToWord(255,0,0),0);
+								printText("zom left: idk", 10, 5, RGBToWord(255,0,0),0);//defauly for it if breaks
 					}
 
 					
